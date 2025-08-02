@@ -9,7 +9,10 @@
     "lint": "next lint",
     "generate-embeddings-pinecone": "node src/scripts/indexPinecone.mjs",
     "generate-embeddings-supabase": "node src/scripts/indexPGVector.mjs",
-    "export-to-character": "node src/scripts/exportToCharacter.mjs"
+    "export-to-character": "node src/scripts/exportToCharacter.mjs",
+    "db:setup": "node scripts/setup-database.js setup",
+    "db:test": "node scripts/setup-database.js test",
+    "db:reset": "node scripts/setup-database.js reset"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.10.12",

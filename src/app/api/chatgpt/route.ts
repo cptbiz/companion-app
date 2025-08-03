@@ -2,17 +2,17 @@ import { OpenAI } from "langchain/llms/openai";
 import dotenv from "dotenv";
 import { LLMChain } from "langchain/chains";
 import { StreamingTextResponse, LangChainStream } from "ai";
-import clerk from "@clerk/clerk-sdk-node";
 import { CallbackManager } from "langchain/callbacks";
 import { PromptTemplate } from "langchain/prompts";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs";
+// Убираем импорты Clerk
 import MemoryManager from "@/app/utils/memory";
 import { rateLimit } from "@/app/utils/rateLimit";
 
 dotenv.config({ path: `.env.local` });
 
 export async function POST(req: Request) {
+  // Убираем переменные Clerk
   let clerkUserId;
   let user;
   let clerkUserName;
@@ -38,27 +38,29 @@ export async function POST(req: Request) {
   const companionFileName = name + ".txt";
 
   console.log("prompt: ", prompt);
+  // Убираем аутентификацию Clerk
   if (isText) {
-    clerkUserId = userId;
-    clerkUserName = userName;
+    clerkUserId = userId || "anonymous";
+    clerkUserName = userName || "User";
   } else {
-    user = await currentUser();
-    clerkUserId = user?.id;
-    clerkUserName = user?.firstName;
+    // Убираем вызов currentUser()
+    clerkUserId = "anonymous";
+    clerkUserName = "User";
   }
 
-  if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
-    console.log("user not authorized");
-    return new NextResponse(
-      JSON.stringify({ Message: "User not authorized" }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  // Убираем проверку авторизации
+  // if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
+  //   console.log("user not authorized");
+  //   return new NextResponse(
+  //     JSON.stringify({ Message: "User not authorized" }),
+  //     {
+  //       status: 401,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //   );
+  // }
 
   // Load character "PREAMBLE" from character file. These are the core personality
   // characteristics that are used in every prompt. Additional background is

@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
-import clerk from "@clerk/clerk-sdk-node";
+// Убираем импорты Clerk
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs";
 import { rateLimit } from "@/app/utils/rateLimit";
 import {Md5} from 'ts-md5'
 import ConfigManager from "@/app/utils/config";
@@ -54,27 +53,29 @@ export async function POST(req: Request) {
   console.log(`Companion Name: ${companionName}`)
   console.log(`Prompt: ${prompt}`);
 
+  // Убираем аутентификацию Clerk
   if (isText) {
-    clerkUserId = userId;
-    clerkUserName = userName;
+    clerkUserId = userId || "anonymous";
+    clerkUserName = userName || "User";
   } else {
-    user = await currentUser();
-    clerkUserId = user?.id;
-    clerkUserName = user?.firstName;
+    // Убираем вызов currentUser()
+    clerkUserId = "anonymous";
+    clerkUserName = "User";
   }
 
-  if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
-    console.log("user not authorized");
-    return new NextResponse(
-      JSON.stringify({ Message: "User not authorized" }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  // Убираем проверку авторизации
+  // if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
+  //   console.log("user not authorized");
+  //   return new NextResponse(
+  //     JSON.stringify({ Message: "User not authorized" }),
+  //     {
+  //       status: 401,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //   );
+  // }
 
   // Create a chat session id for the user
   const chatSessionId = Md5.hashStr(userId || "anonymous");

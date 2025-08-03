@@ -2,9 +2,8 @@ import dotenv from "dotenv";
 import { StreamingTextResponse, LangChainStream } from "ai";
 import { Replicate } from "langchain/llms/replicate";
 import { CallbackManager } from "langchain/callbacks";
-import clerk from "@clerk/clerk-sdk-node";
+// Убираем импорты Clerk
 import MemoryManager from "@/app/utils/memory";
-import { currentUser } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/app/utils/rateLimit";
 
@@ -35,26 +34,28 @@ export async function POST(request: Request) {
   const name = request.headers.get("name");
   const companion_file_name = name + ".txt";
 
+  // Убираем аутентификацию Clerk
   if (isText) {
-    clerkUserId = userId;
-    clerkUserName = userName;
+    clerkUserId = userId || "anonymous";
+    clerkUserName = userName || "User";
   } else {
-    user = await currentUser();
-    clerkUserId = user?.id;
-    clerkUserName = user?.firstName;
+    // Убираем вызов currentUser()
+    clerkUserId = "anonymous";
+    clerkUserName = "User";
   }
 
-  if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
-    return new NextResponse(
-      JSON.stringify({ Message: "User not authorized" }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  // Убираем проверку авторизации
+  // if (!clerkUserId || !!!(await clerk.users.getUser(clerkUserId))) {
+  //   return new NextResponse(
+  //     JSON.stringify({ Message: "User not authorized" }),
+  //     {
+  //       status: 401,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //   );
+  // }
 
   // Load character "PREAMBLE" from character file. These are the core personality
   // characteristics that are used in every prompt. Additional background is

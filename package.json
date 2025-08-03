@@ -20,7 +20,8 @@
     "domains:test": "node scripts/manage-domains.js --test",
     "domains:recommend": "node scripts/manage-domains.js --recommendations",
     "domains:env": "node scripts/manage-domains.js --env",
-    "domains:commands": "node scripts/manage-domains.js --commands"
+    "domains:commands": "node scripts/manage-domains.js --commands",
+    "redis:setup": "node scripts/redis-setup.js"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.10.12",

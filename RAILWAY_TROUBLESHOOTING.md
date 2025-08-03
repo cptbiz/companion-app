@@ -61,21 +61,10 @@ warn Experimental features are not covered by semver, and may cause unexpected o
 
 **Решение:**
 - ✅ Убедитесь, что в `next.config.js` НЕТ `experimental.serverActions`
-- ✅ Проверьте, что middleware использует конкретные маршруты вместо wildcard
 - ✅ Удалите все файлы с `"use server"` директивами
+- ✅ Middleware был удален для устранения ошибок
 
-**Правильная конфигурация middleware:**
-```typescript
-export default authMiddleware({
-  publicRoutes: [
-    "/api/health",
-    "/api/startup", 
-    "/api/test",
-    "/api/companions",
-    "/api/text"
-  ],
-});
-```
+**Примечание:** Middleware был полностью удален для упрощения развертывания.
 
 ### 2. PostgreSQL Service Issues
 
@@ -102,7 +91,18 @@ npm run clerk:check
 # - https://companion-app-tau.vercel.app
 ```
 
-### 4. Build Failures
+### 4. Middleware Issues
+
+**Проблема:** `MIDDLEWARE_INVOCATION_FAILED` ошибки
+
+**Решение:**
+- ✅ Middleware был полностью удален
+- ✅ Приложение работает без middleware
+- ✅ Все API endpoints доступны без аутентификации
+
+**Примечание:** Middleware удален для упрощения развертывания и устранения ошибок.
+
+### 5. Build Failures
 
 **Проблема:** Ошибки сборки
 

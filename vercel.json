@@ -13,6 +13,6 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_RAILWAY_API_URL": "@railway-api-url"
+    "NEXT_PUBLIC_RAILWAY_API_URL": "https://companion-app-production-0cc9.up.railway.app"
   }
 } 

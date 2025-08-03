@@ -8,7 +8,8 @@ console.log('=====================================\n');
 const domains = {
   railway: 'https://companion-app-production-0cc9.up.railway.app',
   vercel1: 'https://companion-app-git-main-itcbrio.vercel.app',
-  vercel2: 'https://companion-8j6mcqkhn-itcbrio.vercel.app'
+  vercel2: 'https://companion-8j6mcqkhn-itcbrio.vercel.app',
+  vercel3: 'https://companion-app-tau.vercel.app'
 };
 
 const endpoints = [
@@ -81,6 +82,12 @@ function showRecommendations() {
   console.log('   Platform: Vercel');
   console.log('   Type: Frontend Only');
   console.log('   Status: 🔄 Direct deployment\n');
+
+  console.log('4. 🚀 Latest Deployment:');
+  console.log(`   URL: ${domains.vercel3}`);
+  console.log('   Platform: Vercel');
+  console.log('   Type: Frontend Only');
+  console.log('   Status: ✅ Latest (from main branch)\n');
 }
 
 function showEnvironmentSetup() {

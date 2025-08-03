@@ -3,6 +3,24 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  // Production URL configuration
+  env: {
+    CUSTOM_KEY: process.env.NODE_ENV === 'production' 
+      ? 'https://companion-app-production-0cc9.up.railway.app' 
+      : 'http://localhost:3000',
+  },
+  // Server configuration
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    mySecret: process.env.MY_SECRET,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    staticFolder: '/static',
+    baseUrl: process.env.NODE_ENV === 'production' 
+      ? 'https://companion-app-production-0cc9.up.railway.app' 
+      : 'http://localhost:3000',
+  },
   images: {
     remotePatterns: [
       {

@@ -9,6 +9,7 @@ https://companion-app-production-0cc9.up.railway.app
 
 ### Vercel (Frontend Deployments)
 ```
+https://companion-app-tau.vercel.app (Latest)
 https://companion-app-git-main-itcbrio.vercel.app
 https://companion-8j6mcqkhn-itcbrio.vercel.app
 ```
@@ -79,6 +80,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 | Platform | URL | Purpose | Status |
 |----------|-----|---------|--------|
 | Railway | `companion-app-production-0cc9.up.railway.app` | Full Stack | ✅ Production |
+| Vercel | `companion-app-tau.vercel.app` | Frontend | ✅ Latest |
 | Vercel | `companion-app-git-main-itcbrio.vercel.app` | Frontend | 🔄 Git-based |
 | Vercel | `companion-8j6mcqkhn-itcbrio.vercel.app` | Frontend | 🔄 Direct |
 

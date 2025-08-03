@@ -1,11 +1,10 @@
-# 🚨 Railway Deployment Troubleshooting Guide
+# 🚂 Railway Troubleshooting Guide
 
-## 🔍 Диагностика проблемы
+## 🔍 Health Check
 
-### 1. Проверьте health check endpoint
-После деплоя, проверьте:
-```
-https://companion-app-production-0cc9.up.railway.app/api/health
+### Проверка состояния приложения
+```bash
+curl https://companion-app-production-0cc9.up.railway.app/api/health
 ```
 
 **Ожидаемый ответ:**
@@ -13,177 +12,182 @@ https://companion-app-production-0cc9.up.railway.app/api/health
 {
   "status": "healthy",
   "message": "All environment variables are set",
-  "timestamp": "2025-08-02T..."
-}
-```
-
-**Если есть ошибка:**
-```json
-{
-  "status": "error",
-  "message": "Missing environment variables",
-  "missing": ["DATABASE_URL", "OPENAI_API_KEY"]
-}
-```
-
-### 2. Проверьте базовый API endpoint
-```
-https://companion-app-production-0cc9.up.railway.app/api/test
-```
-
-**Ожидаемый ответ:**
-```json
-{
-  "status": "success",
-  "message": "Basic API endpoint is working",
-  "timestamp": "2025-08-02T...",
+  "timestamp": "2025-08-03T00:00:00.000Z",
   "environment": "production"
 }
 ```
 
-## 🛠️ Пошаговое решение
+## 🔧 Environment Variables
 
-### Шаг 1: Проверьте переменные окружения в Railway
-
-1. **Откройте Railway Dashboard**
-2. **Перейдите в ваш проект**
-3. **Выберите сервис companion-app**
-4. **Перейдите в раздел "Variables"**
-5. **Убедитесь, что все переменные установлены:**
-
+### Обязательные переменные
 ```bash
-# Обязательные переменные:
-DATABASE_URL=postgresql://username:password@host:port/database
-VECTOR_DB=postgresql
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_****
-CLERK_SECRET_KEY=sk_test_****
-OPENAI_API_KEY=sk-****
-UPSTASH_REDIS_REST_URL=https://****
-UPSTASH_REDIS_REST_TOKEN=AZ****
+# Database
+DATABASE_URL=postgresql://...
 
-# Дополнительные переменные Clerk:
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Redis (Upstash)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=AZ...
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+CLERK_JWKS_URL=https://renewing-stingray-30.clerk.accounts.dev/.well-known/jwks.json
+
+# Railway URL
+NEXT_PUBLIC_RAILWAY_API_URL=https://companion-app-production-0cc9.up.railway.app
 ```
 
-### Шаг 2: Удалите Supabase переменные
-
-**Убедитесь, что эти переменные НЕ установлены:**
-- `SUPABASE_URL`
-- `SUPABASE_PRIVATE_KEY`
-
-### Шаг 3: Проверьте PostgreSQL сервис
-
-1. **Убедитесь, что PostgreSQL сервис добавлен**
-2. **Скопируйте DATABASE_URL из PostgreSQL сервиса**
-3. **Установите VECTOR_DB=postgresql**
-
-### Шаг 4: Перезапустите сервис
-
-1. **В Railway Dashboard выберите ваш сервис**
-2. **Нажмите "Deploy" или "Redeploy"**
-3. **Дождитесь завершения деплоя**
-
-## 🔍 Анализ логов
-
-### Проверьте логи Railway:
-
-1. **Откройте Railway Dashboard**
-2. **Выберите ваш сервис**
-3. **Перейдите в раздел "Logs"**
-4. **Ищите следующие сообщения:**
-
-**✅ Успешная инициализация:**
-```
-INFO: PostgreSQL with pgvector initialized successfully.
-```
-
-**❌ Ошибки:**
-```
-ERROR: DATABASE_URL is not set
-ERROR: Failed to initialize MemoryManager
-ERROR: Failed to get MemoryManager instance
-```
-
-## 🚨 Частые проблемы и решения
-
-### Проблема 1: "DATABASE_URL is not set"
-**Решение:**
-1. Добавьте PostgreSQL сервис в Railway
-2. Скопируйте DATABASE_URL из PostgreSQL сервиса
-3. Добавьте переменную в companion-app сервис
-
-### Проблема 2: "Failed to connect to PostgreSQL"
-**Решение:**
-1. Убедитесь, что PostgreSQL сервис запущен
-2. Проверьте правильность DATABASE_URL
-3. Убедитесь, что VECTOR_DB=postgresql
-
-### Проблема 3: "pgvector extension not available"
-**Решение:**
-1. Приложение автоматически создаст pgvector расширение
-2. Убедитесь, что PostgreSQL сервис поддерживает расширения
-3. Проверьте логи на наличие ошибок инициализации
-
-### Проблема 4: "Clerk authentication failed"
-**Решение:**
-1. Проверьте правильность Clerk ключей
-2. Убедитесь, что домен добавлен в Clerk
-3. Проверьте переменные NEXT_PUBLIC_CLERK_*
-
-## 🧪 Тестирование
-
-### 1. Тест health check
+### Проверка переменных
 ```bash
+# Локальная проверка
+npm run clerk:check
+
+# Проверка Railway
 curl https://companion-app-production-0cc9.up.railway.app/api/health
 ```
 
-### 2. Тест базового API
+## 🐛 Common Issues
+
+### 1. ServerActions Warnings
+
+**Проблема:** В логах Railway появляются предупреждения:
+```
+warn You have enabled experimental feature (serverActions) in next.config.js.
+warn Experimental features are not covered by semver, and may cause unexpected or broken application behavior.
+```
+
+**Решение:**
+- ✅ Убедитесь, что в `next.config.js` НЕТ `experimental.serverActions`
+- ✅ Проверьте, что middleware использует конкретные маршруты вместо wildcard
+- ✅ Удалите все файлы с `"use server"` директивами
+
+**Правильная конфигурация middleware:**
+```typescript
+export default authMiddleware({
+  publicRoutes: [
+    "/api/health",
+    "/api/startup", 
+    "/api/test",
+    "/api/companions",
+    "/api/text"
+  ],
+});
+```
+
+### 2. PostgreSQL Service Issues
+
+**Проблема:** Ошибки подключения к базе данных
+
+**Решение:**
 ```bash
+# Проверьте DATABASE_URL в Railway Variables
+# Убедитесь, что PostgreSQL сервис запущен
+# Проверьте SSL настройки для production
+```
+
+### 3. Clerk Authentication Errors
+
+**Проблема:** Ошибки аутентификации
+
+**Решение:**
+```bash
+# Проверьте Clerk ключи
+npm run clerk:check
+
+# Добавьте домены в Clerk Dashboard:
+# - https://companion-app-production-0cc9.up.railway.app
+# - https://companion-app-tau.vercel.app
+```
+
+### 4. Build Failures
+
+**Проблема:** Ошибки сборки
+
+**Решение:**
+```bash
+# Локальная проверка сборки
+npm run build
+
+# Очистка кэша
+rm -rf .next
+npm run build
+```
+
+## 🔄 Debugging Commands
+
+### Railway Logs
+```bash
+# В Railway Dashboard → Logs
+# Фильтр: "error" или "warn"
+```
+
+### Health Check Endpoints
+```bash
+# Основная проверка
+curl https://companion-app-production-0cc9.up.railway.app/api/health
+
+# Проверка запуска
+curl https://companion-app-production-0cc9.up.railway.app/api/startup
+
+# Тест API
 curl https://companion-app-production-0cc9.up.railway.app/api/test
 ```
 
-### 3. Тест главной страницы
+### Database Connection
 ```bash
-curl https://companion-app-production-0cc9.up.railway.app/
+# Проверка PostgreSQL
+curl -X POST https://companion-app-production-0cc9.up.railway.app/api/chatgpt \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"test"}]}'
 ```
 
-## 📞 Поддержка
+## 📊 Monitoring
 
-### Полезные команды Railway CLI:
+### Key Metrics
+- **Health Check Status:** `/api/health`
+- **Startup Time:** `/api/startup`
+- **Database Connection:** Vector search functionality
+- **Authentication:** Clerk middleware status
+
+### Log Analysis
 ```bash
-# Установка Railway CLI
-npm install -g @railway/cli
-
-# Логин
-railway login
-
-# Проверка статуса
-railway status
-
-# Просмотр логов
-railway logs
-
-# Переменные окружения
-railway variables
-
-# Перезапуск сервиса
-railway service restart
+# Поиск ошибок в логах
+grep "ERROR" railway-logs.txt
+grep "warn" railway-logs.txt
+grep "serverActions" railway-logs.txt
 ```
 
-### Полезные ссылки:
-- [Railway Documentation](https://docs.railway.app)
-- [Railway CLI Documentation](https://docs.railway.app/reference/cli)
-- [PostgreSQL on Railway](https://docs.railway.app/databases/postgresql)
-- [Environment Variables](https://docs.railway.app/deploy/environment-variables)
+## 🚀 Deployment Checklist
 
-## 🎯 Ожидаемый результат
+### Before Deploy
+- [ ] Все переменные окружения установлены в Railway
+- [ ] Локальная сборка проходит без ошибок
+- [ ] Clerk домены добавлены в Dashboard
+- [ ] PostgreSQL сервис активен
 
-После правильной настройки:
-- ✅ Health check возвращает "healthy"
-- ✅ Тестовый API endpoint работает
-- ✅ Главная страница загружается
-- ✅ Логи показывают успешную инициализацию PostgreSQL
-- ✅ Приложение готово к использованию 
+### After Deploy
+- [ ] Health check возвращает "healthy"
+- [ ] Нет предупреждений serverActions в логах
+- [ ] Аутентификация работает
+- [ ] Vector search функционирует
+
+## 📞 Support
+
+### Railway Support
+- [Railway Documentation](https://docs.railway.app/)
+- [Railway Discord](https://discord.gg/railway)
+
+### Clerk Support
+- [Clerk Documentation](https://clerk.com/docs)
+- [Clerk Discord](https://discord.gg/clerk)
+
+### Next.js Support
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Next.js GitHub](https://github.com/vercel/next.js)
+
+---
+
+**Примечание:** Все URL в этом документе обновлены для вашего Railway домена `https://companion-app-production-0cc9.up.railway.app` 

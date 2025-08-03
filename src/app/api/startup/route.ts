@@ -15,7 +15,9 @@ export async function GET() {
       environment: process.env.NODE_ENV || 'development',
       port: process.env.PORT || '8080',
       serverUrl: serverUrl,
-      platform: isProduction ? 'Railway Production' : 'Local Development'
+      platform: isProduction ? 'Railway Production' : 'Local Development',
+      version: '1.0.0',
+      uptime: process.uptime()
     });
   } catch (error) {
     console.error('Startup check error:', error);

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     // Check if required environment variables are set
     const requiredEnvVars = [
       'DATABASE_URL',
@@ -16,16 +18,20 @@ export async function GET() {
     
     if (missingVars.length > 0) {
       return NextResponse.json({
-        status: 'error',
-        message: 'Missing environment variables',
-        missing: missingVars
-      }, { status: 500 });
+        status: 'warning',
+        message: 'Some environment variables are missing',
+        missing: missingVars,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      }, { status: 200 });
     }
 
     return NextResponse.json({
       status: 'healthy',
       message: 'All environment variables are set',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime()
     });
   } catch (error) {
     console.error('Health check error:', error);

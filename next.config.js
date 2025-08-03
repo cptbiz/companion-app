@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
   // Production URL configuration
   env: {
     CUSTOM_KEY: process.env.NODE_ENV === 'production' 

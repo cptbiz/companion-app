@@ -21,13 +21,17 @@ class MemoryManager {
     if (process.env.VECTOR_DB === "pinecone") {
       this.vectorDBClient = new PineconeClient();
     } else {
+      // Используем PostgreSQL Railway вместо Supabase
       const auth = {
         detectSessionInUrl: false,
         persistSession: false,
         autoRefreshToken: false,
       };
-      const url = process.env.SUPABASE_URL!;
-      const privateKey = process.env.SUPABASE_PRIVATE_KEY!;
+      
+      // Используем DATABASE_URL из Railway PostgreSQL
+      const url = process.env.DATABASE_URL || process.env.SUPABASE_URL!;
+      const privateKey = process.env.SUPABASE_PRIVATE_KEY || "postgres";
+      
       this.vectorDBClient = createClient(url, privateKey, { auth });
     }
   }
@@ -65,7 +69,7 @@ class MemoryManager {
         });
       return similarDocs;
     } else {
-      console.log("INFO: using Supabase for vector search.");
+      console.log("INFO: using PostgreSQL Railway for vector search.");
       const supabaseClient = <SupabaseClient>this.vectorDBClient;
       const vectorStore = await SupabaseVectorStore.fromExistingIndex(
         new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
@@ -98,33 +102,21 @@ class MemoryManager {
 
   public async writeToHistory(text: string, companionKey: CompanionKey) {
     if (!companionKey || typeof companionKey.userId == "undefined") {
-      console.log("Companion key set incorrectly");
-      return "";
+      return;
     }
-
     const key = this.generateRedisCompanionKey(companionKey);
-    const result = await this.history.zadd(key, {
-      score: Date.now(),
-      member: text,
-    });
-
-    return result;
+    await this.history.lpush(key, text);
+    // Keep only the last 50 messages
+    await this.history.ltrim(key, 0, 49);
   }
 
   public async readLatestHistory(companionKey: CompanionKey): Promise<string> {
     if (!companionKey || typeof companionKey.userId == "undefined") {
-      console.log("Companion key set incorrectly");
       return "";
     }
-
     const key = this.generateRedisCompanionKey(companionKey);
-    let result = await this.history.zrange(key, 0, Date.now(), {
-      byScore: true,
-    });
-
-    result = result.slice(-30).reverse();
-    const recentChats = result.reverse().join("\n");
-    return recentChats;
+    const chatHistory = await this.history.lrange(key, 0, 49);
+    return chatHistory.reverse().join("\n");
   }
 
   public async seedChatHistory(
@@ -132,18 +124,18 @@ class MemoryManager {
     delimiter: string = "\n",
     companionKey: CompanionKey
   ) {
-    const key = this.generateRedisCompanionKey(companionKey);
-    if (await this.history.exists(key)) {
-      console.log("User already has chat history");
+    if (!companionKey || typeof companionKey.userId == "undefined") {
       return;
     }
-
-    const content = seedContent.split(delimiter);
-    let counter = 0;
-    for (const line of content) {
-      await this.history.zadd(key, { score: counter, member: line });
-      counter += 1;
+    const key = this.generateRedisCompanionKey(companionKey);
+    const lines = seedContent.split(delimiter);
+    for (const line of lines) {
+      if (line.trim() !== "") {
+        await this.history.lpush(key, line.trim());
+      }
     }
+    // Keep only the last 50 messages
+    await this.history.ltrim(key, 0, 49);
   }
 }
 

@@ -12,7 +12,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 ```
 
-### 2. База данных (PostgreSQL)
+### 2. База данных (PostgreSQL Railway)
 ```bash
 DATABASE_URL=postgresql://username:password@host:port/database
 ```
@@ -22,11 +22,11 @@ DATABASE_URL=postgresql://username:password@host:port/database
 OPENAI_API_KEY=sk-****
 ```
 
-### 4. Vector Database (Supabase)
+### 4. Vector Database (PostgreSQL Railway)
 ```bash
 VECTOR_DB=supabase
-SUPABASE_URL=https://****
-SUPABASE_PRIVATE_KEY=eyJ****
+SUPABASE_URL=postgresql://username:password@host:port/database
+SUPABASE_PRIVATE_KEY=postgres
 ```
 
 ### 5. Кэш (Redis/Upstash)
@@ -46,13 +46,15 @@ TWILIO_AUTH_TOKEN=*****
 
 1. **Добавьте PostgreSQL** в Railway Dashboard
 2. **Скопируйте DATABASE_URL** из PostgreSQL сервиса
-3. **Добавьте все переменные** в основной сервис
-4. **Перезапустите приложение**
+3. **Используйте тот же DATABASE_URL** для SUPABASE_URL
+4. **Добавьте все переменные** в основной сервис
+5. **Перезапустите приложение**
 
 ## 🚨 Важные моменты
 
-- DATABASE_URL должен быть из PostgreSQL сервиса Railway
-- SUPABASE_URL может быть тем же DATABASE_URL
+- **DATABASE_URL** должен быть из PostgreSQL сервиса Railway
+- **SUPABASE_URL** используйте тот же DATABASE_URL
+- **SUPABASE_PRIVATE_KEY** можно оставить как "postgres"
 - Все переменные с NEXT_PUBLIC_ доступны на клиенте
 - Остальные переменные только на сервере
 

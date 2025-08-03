@@ -4,6 +4,7 @@ import { PineconeClient } from "@pinecone-database/pinecone";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
 import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
 import { SupabaseClient, createClient } from "@supabase/supabase-js";
+import { Pool } from "pg";
 
 export type CompanionKey = {
   companionName: string;
@@ -14,25 +15,19 @@ export type CompanionKey = {
 class MemoryManager {
   private static instance: MemoryManager;
   private history: Redis;
-  private vectorDBClient: PineconeClient | SupabaseClient;
+  private vectorDBClient: PineconeClient | SupabaseClient | Pool;
 
   public constructor() {
     this.history = Redis.fromEnv();
     if (process.env.VECTOR_DB === "pinecone") {
       this.vectorDBClient = new PineconeClient();
     } else {
-      // Используем PostgreSQL Railway вместо Supabase
-      const auth = {
-        detectSessionInUrl: false,
-        persistSession: false,
-        autoRefreshToken: false,
-      };
-      
-      // Используем DATABASE_URL из Railway PostgreSQL
-      const url = process.env.DATABASE_URL || process.env.SUPABASE_URL!;
-      const privateKey = process.env.SUPABASE_PRIVATE_KEY || "postgres";
-      
-      this.vectorDBClient = createClient(url, privateKey, { auth });
+      // Используем PostgreSQL Railway с pgvector
+      const url = process.env.DATABASE_URL!;
+      this.vectorDBClient = new Pool({
+        connectionString: url,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      });
     }
   }
 
@@ -42,6 +37,52 @@ class MemoryManager {
         apiKey: process.env.PINECONE_API_KEY!,
         environment: process.env.PINECONE_ENVIRONMENT!,
       });
+    } else if (this.vectorDBClient instanceof Pool) {
+      // Инициализация PostgreSQL с pgvector
+      try {
+        const client = await this.vectorDBClient.connect();
+        await client.query('CREATE EXTENSION IF NOT EXISTS vector;');
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS documents (
+            id bigserial primary key,
+            content text,
+            metadata jsonb,
+            embedding vector(1536)
+          );
+        `);
+        await client.query(`
+          CREATE OR REPLACE FUNCTION match_documents (
+            query_embedding vector(1536),
+            match_count int DEFAULT null,
+            filter jsonb DEFAULT '{}'
+          ) returns table (
+            id bigint,
+            content text,
+            metadata jsonb,
+            similarity float
+          )
+          language plpgsql
+          as $$
+          #variable_conflict use_column
+          begin
+            return query
+            select
+              id,
+              content,
+              metadata,
+              1 - (documents.embedding <=> query_embedding) as similarity
+            from documents
+            where metadata @> filter
+            order by documents.embedding <=> query_embedding
+            limit match_count;
+          end;
+          $$;
+        `);
+        client.release();
+        console.log("INFO: PostgreSQL with pgvector initialized successfully.");
+      } catch (error) {
+        console.error("ERROR: Failed to initialize PostgreSQL:", error);
+      }
     }
   }
 
@@ -70,21 +111,36 @@ class MemoryManager {
       return similarDocs;
     } else {
       console.log("INFO: using PostgreSQL Railway for vector search.");
-      const supabaseClient = <SupabaseClient>this.vectorDBClient;
-      const vectorStore = await SupabaseVectorStore.fromExistingIndex(
-        new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
-        {
-          client: supabaseClient,
-          tableName: "documents",
-          queryName: "match_documents",
-        }
-      );
-      const similarDocs = await vectorStore
-        .similaritySearch(recentChatHistory, 3)
-        .catch((err) => {
-          console.log("WARNING: failed to get vector search results.", err);
+      const pool = <Pool>this.vectorDBClient;
+      
+      try {
+        const embeddings = new OpenAIEmbeddings({ 
+          openAIApiKey: process.env.OPENAI_API_KEY 
         });
-      return similarDocs;
+        
+        const queryEmbedding = await embeddings.embedQuery(recentChatHistory);
+        
+        const client = await pool.connect();
+        const result = await client.query(
+          `SELECT id, content, metadata, 
+           1 - (embedding <=> $1) as similarity 
+           FROM documents 
+           WHERE metadata @> $2 
+           ORDER BY embedding <=> $1 
+           LIMIT 3`,
+          [queryEmbedding, JSON.stringify({ fileName: companionFileName })]
+        );
+        client.release();
+        
+        return result.rows.map(row => ({
+          pageContent: row.content,
+          metadata: row.metadata,
+          similarity: row.similarity
+        }));
+      } catch (err) {
+        console.log("WARNING: failed to get vector search results from PostgreSQL.", err);
+        return [];
+      }
     }
   }
 

@@ -22,11 +22,10 @@ DATABASE_URL=postgresql://username:password@host:port/database
 OPENAI_API_KEY=sk-****
 ```
 
-### 4. Vector Database (PostgreSQL Railway)
+### 4. Vector Database (PostgreSQL Railway с pgvector)
 ```bash
-VECTOR_DB=supabase
-SUPABASE_URL=postgresql://username:password@host:port/database
-SUPABASE_PRIVATE_KEY=postgres
+VECTOR_DB=postgresql
+# Используем тот же DATABASE_URL для векторного поиска
 ```
 
 ### 5. Кэш (Redis/Upstash)
@@ -46,15 +45,15 @@ TWILIO_AUTH_TOKEN=*****
 
 1. **Добавьте PostgreSQL** в Railway Dashboard
 2. **Скопируйте DATABASE_URL** из PostgreSQL сервиса
-3. **Используйте тот же DATABASE_URL** для SUPABASE_URL
+3. **Установите VECTOR_DB=postgresql** для использования pgvector
 4. **Добавьте все переменные** в основной сервис
 5. **Перезапустите приложение**
 
 ## 🚨 Важные моменты
 
 - **DATABASE_URL** должен быть из PostgreSQL сервиса Railway
-- **SUPABASE_URL** используйте тот же DATABASE_URL
-- **SUPABASE_PRIVATE_KEY** можно оставить как "postgres"
+- **VECTOR_DB=postgresql** для использования pgvector
+- **Удалены Supabase переменные** - используем только PostgreSQL
 - Все переменные с NEXT_PUBLIC_ доступны на клиенте
 - Остальные переменные только на сервере
 

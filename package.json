@@ -12,7 +12,8 @@
     "export-to-character": "node src/scripts/exportToCharacter.mjs",
     "db:setup": "node scripts/setup-database.js setup",
     "db:test": "node scripts/setup-database.js test",
-    "db:reset": "node scripts/setup-database.js reset"
+    "db:reset": "node scripts/setup-database.js reset",
+    "railway:setup": "node scripts/railway-setup.js"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.10.12",
@@ -22,6 +23,7 @@
     "@supabase/supabase-js": "^2.25.0",
     "@tailwindcss/forms": "^0.5.3",
     "@types/node": "20.2.5",
+    "@types/pg": "^8.15.5",
     "@types/react": "18.2.8",
     "@types/react-dom": "18.2.4",
     "@upstash/ratelimit": "^0.4.3",
@@ -34,6 +36,7 @@
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.92",
     "next": "13.4.4",
+    "pg": "^8.16.3",
     "postcss": "8.4.24",
     "react": "18.2.0",
     "react-dom": "18.2.0",

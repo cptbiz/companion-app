@@ -18,16 +18,25 @@ class MemoryManager {
   private vectorDBClient: PineconeClient | SupabaseClient | Pool;
 
   public constructor() {
-    this.history = Redis.fromEnv();
-    if (process.env.VECTOR_DB === "pinecone") {
-      this.vectorDBClient = new PineconeClient();
-    } else {
-      // Используем PostgreSQL Railway с pgvector
-      const url = process.env.DATABASE_URL!;
-      this.vectorDBClient = new Pool({
-        connectionString: url,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      });
+    try {
+      this.history = Redis.fromEnv();
+      if (process.env.VECTOR_DB === "pinecone") {
+        this.vectorDBClient = new PineconeClient();
+      } else {
+        // Используем PostgreSQL Railway с pgvector
+        const url = process.env.DATABASE_URL;
+        if (!url) {
+          console.error("ERROR: DATABASE_URL is not set");
+          throw new Error("DATABASE_URL is required");
+        }
+        this.vectorDBClient = new Pool({
+          connectionString: url,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+        });
+      }
+    } catch (error) {
+      console.error("ERROR: Failed to initialize MemoryManager:", error);
+      throw error;
     }
   }
 
@@ -145,11 +154,16 @@ class MemoryManager {
   }
 
   public static async getInstance(): Promise<MemoryManager> {
-    if (!MemoryManager.instance) {
-      MemoryManager.instance = new MemoryManager();
-      await MemoryManager.instance.init();
+    try {
+      if (!MemoryManager.instance) {
+        MemoryManager.instance = new MemoryManager();
+        await MemoryManager.instance.init();
+      }
+      return MemoryManager.instance;
+    } catch (error) {
+      console.error("ERROR: Failed to get MemoryManager instance:", error);
+      throw error;
     }
-    return MemoryManager.instance;
   }
 
   private generateRedisCompanionKey(companionKey: CompanionKey): string {

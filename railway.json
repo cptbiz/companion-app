@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node scripts/railway-logger.js && npm start",
+    "startCommand": "node scripts/start-production.js",
     "healthcheckPath": "/api/startup",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",

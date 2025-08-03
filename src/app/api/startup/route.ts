@@ -5,7 +5,7 @@ export async function GET() {
     const isProduction = process.env.NODE_ENV === 'production';
     const serverUrl = isProduction 
       ? 'https://companion-app-production-0cc9.up.railway.app'
-      : `http://localhost:${process.env.PORT || 3000}`;
+      : `http://localhost:${process.env.PORT || 8080}`;
     
     // Basic startup check - no external dependencies
     return NextResponse.json({
@@ -13,7 +13,7 @@ export async function GET() {
       message: 'Application is ready to start',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      port: process.env.PORT || '3000',
+      port: process.env.PORT || '8080',
       serverUrl: serverUrl,
       platform: isProduction ? 'Railway Production' : 'Local Development'
     });

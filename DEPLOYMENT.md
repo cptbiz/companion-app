@@ -76,7 +76,7 @@ TWILIO_AUTH_TOKEN=*****
 
 ```bash
 # Railway API URL
-NEXT_PUBLIC_RAILWAY_API_URL=https://your-app.railway.app
+NEXT_PUBLIC_RAILWAY_API_URL=https://companion-app-production-0cc9.up.railway.app
 
 # Clerk (те же ключи что и в Railway)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_****

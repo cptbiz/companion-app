@@ -13,7 +13,8 @@
     "db:setup": "node scripts/setup-database.js setup",
     "db:test": "node scripts/setup-database.js test",
     "db:reset": "node scripts/setup-database.js reset",
-    "railway:setup": "node scripts/railway-setup.js"
+    "railway:setup": "node scripts/railway-setup.js",
+    "railway:env": "node scripts/setup-railway-env.js"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.10.12",

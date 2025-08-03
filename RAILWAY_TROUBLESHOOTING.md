@@ -5,7 +5,7 @@
 ### 1. Проверьте health check endpoint
 После деплоя, проверьте:
 ```
-https://your-app.railway.app/api/health
+https://companion-app-production-0cc9.up.railway.app/api/health
 ```
 
 **Ожидаемый ответ:**
@@ -28,7 +28,7 @@ https://your-app.railway.app/api/health
 
 ### 2. Проверьте базовый API endpoint
 ```
-https://your-app.railway.app/api/test
+https://companion-app-production-0cc9.up.railway.app/api/test
 ```
 
 **Ожидаемый ответ:**
@@ -137,17 +137,17 @@ ERROR: Failed to get MemoryManager instance
 
 ### 1. Тест health check
 ```bash
-curl https://your-app.railway.app/api/health
+curl https://companion-app-production-0cc9.up.railway.app/api/health
 ```
 
 ### 2. Тест базового API
 ```bash
-curl https://your-app.railway.app/api/test
+curl https://companion-app-production-0cc9.up.railway.app/api/test
 ```
 
 ### 3. Тест главной страницы
 ```bash
-curl https://your-app.railway.app/
+curl https://companion-app-production-0cc9.up.railway.app/
 ```
 
 ## 📞 Поддержка

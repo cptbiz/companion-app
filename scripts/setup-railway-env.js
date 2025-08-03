@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-
-console.log('🚀 Railway Setup Helper for Companion App');
-console.log('==========================================\n');
+console.log('🚀 Railway Environment Setup for Companion App');
+console.log('=============================================\n');
 
 console.log('📋 Required Environment Variables for Railway:');
 console.log('');
@@ -35,11 +32,12 @@ console.log('5. Redis (Upstash):');
 console.log('   - UPSTASH_REDIS_REST_URL');
 console.log('   - UPSTASH_REDIS_REST_TOKEN');
 console.log('');
+
 console.log('6. Railway API URL:');
 console.log('   - NEXT_PUBLIC_RAILWAY_API_URL=https://companion-app-production-0cc9.up.railway.app');
 console.log('');
 
-console.log('6. Additional Services (optional):');
+console.log('7. Additional Services (optional):');
 console.log('   - REPLICATE_API_TOKEN');
 console.log('   - TWILIO_ACCOUNT_SID');
 console.log('   - TWILIO_AUTH_TOKEN');
@@ -58,9 +56,20 @@ console.log('- Remove all Supabase-related environment variables');
 console.log('- Use only DATABASE_URL for both regular DB and vector storage');
 console.log('- The app will automatically set up pgvector extension');
 console.log('- Make sure your PostgreSQL service supports pgvector extension');
+console.log('- Use the correct Railway URL: https://companion-app-production-0cc9.up.railway.app');
 console.log('');
 
 console.log('📞 Support:');
 console.log('- Railway Docs: https://docs.railway.app');
 console.log('- Clerk Docs: https://clerk.com/docs');
-console.log('- pgvector Docs: https://github.com/pgvector/pgvector'); 
+console.log('- pgvector Docs: https://github.com/pgvector/pgvector');
+console.log('');
+
+console.log('🎯 Your Railway App URL:');
+console.log('https://companion-app-production-0cc9.up.railway.app');
+console.log('');
+
+console.log('🧪 Test URLs:');
+console.log('- Health Check: https://companion-app-production-0cc9.up.railway.app/api/health');
+console.log('- Test API: https://companion-app-production-0cc9.up.railway.app/api/test');
+console.log('- Startup Check: https://companion-app-production-0cc9.up.railway.app/api/startup'); 

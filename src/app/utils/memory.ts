@@ -15,83 +15,101 @@ export type CompanionKey = {
 class MemoryManager {
   private static instance: MemoryManager;
   private history: Redis;
-  private vectorDBClient: PineconeClient | SupabaseClient | Pool;
+  private vectorDBClient: PineconeClient | SupabaseClient | Pool | null;
+  private isInitialized: boolean = false;
 
   public constructor() {
     try {
       this.history = Redis.fromEnv();
-      if (process.env.VECTOR_DB === "pinecone") {
-        this.vectorDBClient = new PineconeClient();
-      } else {
-        // Используем PostgreSQL Railway с pgvector
-        const url = process.env.DATABASE_URL;
-        if (!url) {
-          console.error("ERROR: DATABASE_URL is not set");
-          throw new Error("DATABASE_URL is required");
-        }
-        this.vectorDBClient = new Pool({
-          connectionString: url,
-          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        });
-      }
+      this.vectorDBClient = null;
+      this.isInitialized = false;
     } catch (error) {
-      console.error("ERROR: Failed to initialize MemoryManager:", error);
+      console.error("ERROR: Failed to initialize Redis:", error);
       throw error;
     }
   }
 
   public async init() {
-    if (this.vectorDBClient instanceof PineconeClient) {
-      await this.vectorDBClient.init({
-        apiKey: process.env.PINECONE_API_KEY!,
-        environment: process.env.PINECONE_ENVIRONMENT!,
-      });
-    } else if (this.vectorDBClient instanceof Pool) {
-      // Инициализация PostgreSQL с pgvector
-      try {
-        const client = await this.vectorDBClient.connect();
-        await client.query('CREATE EXTENSION IF NOT EXISTS vector;');
-        await client.query(`
-          CREATE TABLE IF NOT EXISTS documents (
-            id bigserial primary key,
-            content text,
-            metadata jsonb,
-            embedding vector(1536)
-          );
-        `);
-        await client.query(`
-          CREATE OR REPLACE FUNCTION match_documents (
-            query_embedding vector(1536),
-            match_count int DEFAULT null,
-            filter jsonb DEFAULT '{}'
-          ) returns table (
-            id bigint,
-            content text,
-            metadata jsonb,
-            similarity float
-          )
-          language plpgsql
-          as $$
-          #variable_conflict use_column
-          begin
-            return query
-            select
-              id,
-              content,
-              metadata,
-              1 - (documents.embedding <=> query_embedding) as similarity
-            from documents
-            where metadata @> filter
-            order by documents.embedding <=> query_embedding
-            limit match_count;
-          end;
-          $$;
-        `);
-        client.release();
-        console.log("INFO: PostgreSQL with pgvector initialized successfully.");
-      } catch (error) {
-        console.error("ERROR: Failed to initialize PostgreSQL:", error);
+    if (this.isInitialized) {
+      return;
+    }
+
+    try {
+      if (process.env.VECTOR_DB === "pinecone") {
+        this.vectorDBClient = new PineconeClient();
+        await this.vectorDBClient.init({
+          apiKey: process.env.PINECONE_API_KEY!,
+          environment: process.env.PINECONE_ENVIRONMENT!,
+        });
+      } else {
+        // Используем PostgreSQL Railway с pgvector
+        const url = process.env.DATABASE_URL;
+        if (!url) {
+          console.warn("WARNING: DATABASE_URL is not set, vector search will be disabled");
+          this.vectorDBClient = null;
+          this.isInitialized = true;
+          return;
+        }
+        
+        this.vectorDBClient = new Pool({
+          connectionString: url,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+        });
+
+        // Инициализация PostgreSQL с pgvector
+        try {
+          const client = await this.vectorDBClient.connect();
+          await client.query('CREATE EXTENSION IF NOT EXISTS vector;');
+          await client.query(`
+            CREATE TABLE IF NOT EXISTS documents (
+              id bigserial primary key,
+              content text,
+              metadata jsonb,
+              embedding vector(1536)
+            );
+          `);
+          await client.query(`
+            CREATE OR REPLACE FUNCTION match_documents (
+              query_embedding vector(1536),
+              match_count int DEFAULT null,
+              filter jsonb DEFAULT '{}'
+            ) returns table (
+              id bigint,
+              content text,
+              metadata jsonb,
+              similarity float
+            )
+            language plpgsql
+            as $$
+            #variable_conflict use_column
+            begin
+              return query
+              select
+                id,
+                content,
+                metadata,
+                1 - (documents.embedding <=> query_embedding) as similarity
+              from documents
+              where metadata @> filter
+              order by documents.embedding <=> query_embedding
+              limit match_count;
+            end;
+            $$;
+          `);
+          client.release();
+          console.log("INFO: PostgreSQL with pgvector initialized successfully.");
+        } catch (error) {
+          console.error("ERROR: Failed to initialize PostgreSQL:", error);
+          // Don't fail startup, just disable vector search
+          this.vectorDBClient = null;
+        }
       }
+      this.isInitialized = true;
+    } catch (error) {
+      console.error("ERROR: Failed to initialize vector database:", error);
+      // Don't fail startup, just disable vector search
+      this.vectorDBClient = null;
+      this.isInitialized = true;
     }
   }
 
@@ -99,6 +117,10 @@ class MemoryManager {
     recentChatHistory: string,
     companionFileName: string
   ) {
+    if (!this.isInitialized) {
+      await this.init();
+    }
+
     if (process.env.VECTOR_DB === "pinecone") {
       console.log("INFO: using Pinecone for vector search.");
       const pineconeClient = <PineconeClient>this.vectorDBClient;
@@ -118,7 +140,7 @@ class MemoryManager {
           console.log("WARNING: failed to get vector search results.", err);
         });
       return similarDocs;
-    } else {
+    } else if (this.vectorDBClient instanceof Pool) {
       console.log("INFO: using PostgreSQL Railway for vector search.");
       const pool = <Pool>this.vectorDBClient;
       
@@ -150,6 +172,9 @@ class MemoryManager {
         console.log("WARNING: failed to get vector search results from PostgreSQL.", err);
         return [];
       }
+    } else {
+      console.log("INFO: vector search disabled - no database connection");
+      return [];
     }
   }
 

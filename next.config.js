@@ -4,7 +4,7 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.NODE_ENV === 'production' 
       ? 'https://companion-app-production-0cc9.up.railway.app' 
-      : 'http://localhost:8080',
+      : 'http://localhost:3000',
   },
   // Server configuration
   serverRuntimeConfig: {
@@ -16,7 +16,7 @@ const nextConfig = {
     staticFolder: '/static',
     baseUrl: process.env.NODE_ENV === 'production' 
       ? 'https://companion-app-production-0cc9.up.railway.app' 
-      : 'http://localhost:8080',
+      : 'http://localhost:3000',
   },
   images: {
     remotePatterns: [

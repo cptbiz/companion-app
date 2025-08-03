@@ -6,7 +6,7 @@ console.log('');
 console.log('📋 Server Information:');
 console.log(`   URL: https://companion-app-production-0cc9.up.railway.app`);
 console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`   Port: ${process.env.PORT || 8080}`);
+  console.log(`   Port: ${process.env.PORT || 3000}`);
 console.log('');
 console.log('🔍 Health Check Endpoints:');
 console.log('   - Health: /api/health');

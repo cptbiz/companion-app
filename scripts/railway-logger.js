@@ -19,5 +19,5 @@ console.log('   - Vercel (Latest): https://companion-app-tau.vercel.app');
 console.log('   - Vercel (Git): https://companion-app-git-main-itcbrio.vercel.app');
 console.log('');
 console.log('✅ Server is ready!');
-console.log('   The application will show the correct Railway URL instead of localhost');
+console.log('   ✅ Production URL: https://companion-app-production-0cc9.up.railway.app');
 console.log(''); 
